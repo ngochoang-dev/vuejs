@@ -8,34 +8,81 @@ export const useAuthStore = defineStore(
   () => {
     const authenticated = ref(false)
     const authLoading = ref(false)
-    const messageError = ref('')
-    const accessToken = ref('')
-    const refreshToken = ref('')
 
-    async function handleSignIn(data: { username: string; password: string }) {
+    const token = reactive({
+      accessToken: '',
+      refreshToken: ''
+    })
+
+    function logout() {
+      authenticated.value = false
+      token.accessToken = ''
+      token.refreshToken = ''
+    }
+
+    async function handleSignIn(
+      data: { username: string; password: string },
+      callback: () => void
+    ) {
       authLoading.value = true
 
       try {
         const res = await axios.post('/user/sign-in', data)
 
-        accessToken.value = res.data.accessToken
-        refreshToken.value = res.data.refreshToken
+        token.accessToken = res.data.accessToken
+        token.refreshToken = res.data.refreshToken
 
         authenticated.value = true
         authLoading.value = false
+        callback()
       } catch (error) {
-        messageError.value = handleApiError(error)
         authLoading.value = false
+        return handleApiError(error)
       }
     }
 
-    function handleSignUp(data: { username: string; password: string }) {
-      authenticated.value = true
+    async function handleSignUp(
+      data: { username: string; password: string },
+      callback: () => void
+    ) {
+      authLoading.value = true
+
+      try {
+        await axios.post('/user', data)
+        authLoading.value = false
+        callback()
+      } catch (error) {
+        authLoading.value = false
+        return handleApiError(error)
+      }
     }
 
-    return { authenticated, authLoading, messageError, handleSignIn, handleSignUp }
+    function setToken({
+      accessToken = '',
+      refreshToken = ''
+    }: {
+      accessToken?: string
+      refreshToken?: string
+    }) {
+      console.log('accessToken', accessToken)
+      console.log('refreshToken', refreshToken)
+      accessToken && (token.accessToken = accessToken)
+      refreshToken && (token.refreshToken = refreshToken)
+    }
+
+    return {
+      authenticated,
+      authLoading,
+      token,
+      handleSignIn,
+      handleSignUp,
+      logout,
+      setToken
+    }
   },
   {
-    persist: true
+    persist: {
+      paths: ['authenticated', 'token']
+    }
   }
 )

@@ -2,8 +2,11 @@
 import { useAuthStore } from '@/stores/auth'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const store = useAuthStore()
 
@@ -27,10 +30,15 @@ const passwordRules = [
 
 function handleSubmit() {
   if (isFormValid.value) {
-    store.handleSignUp({
-      username: username.value,
-      password: password.value
-    })
+    store.handleSignUp(
+      {
+        username: username.value,
+        password: password.value
+      },
+      () => {
+        router.push('/signin')
+      }
+    )
   }
 }
 </script>

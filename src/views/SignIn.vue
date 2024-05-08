@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
-import { ref } from 'vue'
+import type { Ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 
 const store = useAuthStore()
 
-const username = ref('')
-const password = ref('')
+const data = reactive({
+  username: '',
+  password: ''
+})
+const messageError: Ref<undefined | string> = ref(undefined)
 const isFormValid = ref(false)
 
 const usernameRules = [
@@ -27,11 +32,11 @@ const passwordRules = [
   }
 ]
 
-function handleSubmit() {
+async function handleSubmit() {
+  messageError.value = ''
   if (isFormValid.value) {
-    store.handleSignIn({
-      username: username.value,
-      password: password.value
+    messageError.value = await store.handleSignIn(data, () => {
+      router.replace('/')
     })
   }
 }
@@ -40,10 +45,18 @@ function handleSubmit() {
 <template>
   <v-container class="container">
     <v-sheet class="mx-auto signin-view" width="300">
-      {{ store.messageError }}
+      <p style="height: 20px">{{ messageError }}</p>
       <v-form v-model="isFormValid" @submit.prevent="handleSubmit" validate-on="input">
-        <v-text-field v-model="username" :rules="usernameRules" label="Username:"></v-text-field>
-        <v-text-field v-model="password" :rules="passwordRules" label="Password:"></v-text-field>
+        <v-text-field
+          v-model="data.username"
+          :rules="usernameRules"
+          label="Username:"
+        ></v-text-field>
+        <v-text-field
+          v-model="data.password"
+          :rules="passwordRules"
+          label="Password:"
+        ></v-text-field>
         <v-btn
           rounded="xs"
           variant="outlined"
