@@ -1,6 +1,10 @@
+import '@mdi/font/css/materialdesignicons.css'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import { VDateInput } from 'vuetify/labs/VDateInput'
 
 import App from './App.vue'
 import router from './router'
@@ -16,8 +20,18 @@ import { useAuthStore } from './stores/auth'
 axios.defaults.baseURL = 'http://localhost:5000'
 
 const vuetify = createVuetify({
-  components,
-  directives
+  components: {
+    ...components,
+    VDateInput
+  },
+  directives,
+  icons: {
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi
+    }
+  }
 })
 
 const pinia = createPinia()
@@ -33,9 +47,7 @@ app.use(i18n)
 axios.interceptors.request.use(
   function (config) {
     const authStore = useAuthStore()
-
     config.headers.Authorization = 'Bearer ' + authStore.token.accessToken
-    console.log('x', authStore.token.accessToken)
 
     return config
   },
@@ -49,7 +61,6 @@ axios.interceptors.response.use(
     return config
   },
   async function (error) {
-    console.log(error)
     const authStore = useAuthStore()
 
     const { config, response } = error

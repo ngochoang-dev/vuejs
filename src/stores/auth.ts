@@ -64,8 +64,6 @@ export const useAuthStore = defineStore(
       accessToken?: string
       refreshToken?: string
     }) {
-      console.log('accessToken', accessToken)
-      console.log('refreshToken', refreshToken)
       accessToken && (token.accessToken = accessToken)
       refreshToken && (token.refreshToken = refreshToken)
     }
